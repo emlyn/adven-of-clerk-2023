@@ -32,6 +32,8 @@ treb7uchet")
 (defn rstr [s]
   (apply str (reverse s)))
 
+(rstr "Hello")
+
 (def numbers (re-pattern (clojure.string/join "|" (concat (keys digits) (vals digits) ["0"]))))
 (def revnumbers (re-pattern (rstr (clojure.string/join "|" (concat (keys digits) (vals digits) ["0"])))))
 

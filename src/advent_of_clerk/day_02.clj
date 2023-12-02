@@ -10,11 +10,15 @@
                 (assoc m colour (parse-long n))))
             {} colours)))
 
-(defn parse-line [s]
+(parse-draw "3 blue, 4 red")
+
+(defn parse-game [s]
   (let [[a b] (str/split s #": *" 2)
         draws (str/split b #"; *")]
     (into [(parse-long (last (str/split a #" +")))]
           (map parse-draw draws))))
+
+(parse-game "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green")
 
 (defn possible-draw? [cubes draw]
   (every? (fn [[colour n]]
@@ -27,7 +31,7 @@
 (defn part1 [init-cubes s]
   (->> s
        str/split-lines
-       (map parse-line)
+       (map parse-game)
        (filter (partial possible-game? init-cubes))
        (map first)
        (apply +)))
@@ -56,7 +60,7 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green")
 (defn part2 [s]
   (->> s
        str/split-lines
-       (map parse-line)
+       (map parse-game)
        (map min-cubes)
        (map power)
        (apply +)))
