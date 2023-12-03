@@ -58,11 +58,14 @@
 
 (neighbours 0 2)
 
+(defn set-cell [grid [x y] v]
+  (assoc-in grid [y x] v))
+
 (defn map-grid
   "Map a function over a 2D array"
   [f grid]
   (reduce (fn [g [x y]]
-            (assoc-in g [y x] (f (cell grid [x y]) x y)))
+            (set-cell g [x y] (f (cell grid [x y]) x y)))
           grid
           (for [x (range (count (first grid)))
                 y (range (count grid))]
@@ -102,3 +105,47 @@
 (part1 example)
 
 (part1 (slurp "input_03.txt"))
+
+(defn get-num
+  "Get the number touching a cell"
+  [grid pos x y]
+  (let [xmin (last (take-while #(is-digit? (cell grid [% y]))
+                               (range x -1 -1)))
+        xmax (last (take-while #(is-digit? (cell grid [% y]))
+                               (range x (count (first grid)))))]
+    [(reduce #(set-cell %1 [%2 y] false) pos (range xmin (inc xmax)))
+     (parse-long (apply str (map #(cell grid [% y]) (range xmin (inc xmax)))))]))
+
+(defn get-nums
+  "Get numbers reachable from a cell"
+  [grid x y]
+  (let [[_pos nums]
+        (reduce (fn [[pos nums] [xx yy]]
+                  (if (and (cell pos [xx yy])
+                           (is-digit? (cell grid [xx yy])))
+                    (let [[pos* num] (get-num grid pos xx yy)]
+                      [pos* (conj nums num)])
+                    [pos nums]))
+                [(map-grid (constantly true) grid)
+                 []]
+                (neighbours x y))]
+    nums))
+
+(defn part2 [s]
+  (let [grid (->2darray s)]
+    (apply +
+           (reduce (fn [gears [x y]]
+                     (if (= \* (cell grid [x y]))
+                       (let [nums (get-nums grid x y)]
+                         (if (= 2 (count nums))
+                           (conj gears (apply * nums))
+                           gears))
+                       gears))
+                   []
+                   (for [x (range (count (first grid)))
+                         y (range (count grid))]
+                     [x y])))))
+
+(part2 example)
+
+(part2 (slurp "input_03.txt"))
