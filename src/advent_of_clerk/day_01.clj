@@ -3,7 +3,9 @@
   (:require [nextjournal.clerk :as clerk]
             [clojure.string :as str]))
 
-(defn part1 [input]
+(defn part1
+  "Solve part 1"
+  [input]
   (->> input
        str/split-lines
        (map #(filter (set "0123456789") %))
@@ -29,7 +31,9 @@ treb7uchet")
    "eight" "8",
    "nine" "9"})
 
-(defn rstr [s]
+(defn rstr
+  "Reverse a string"
+  [s]
   (apply str (reverse s)))
 
 (rstr "Hello")
@@ -37,7 +41,9 @@ treb7uchet")
 (def numbers (re-pattern (clojure.string/join "|" (concat (keys digits) (vals digits) ["0"]))))
 (def revnumbers (re-pattern (rstr (clojure.string/join "|" (concat (keys digits) (vals digits) ["0"])))))
 
-(defn part2 [input]
+(defn part2
+  "Solve part 2"
+  [input]
   (->> input
        str/split-lines
        (map (fn [s] [(re-find numbers s)
