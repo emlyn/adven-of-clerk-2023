@@ -59,7 +59,7 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green")
 
 (part1 example)
 
-(part1 (slurp "input_02.txt"))
+#_(part1 (slurp "input_02.txt"))
 
 (defn min-cubes
   "Compute the minimum number of cubes needed to play a game"
@@ -83,4 +83,4 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green")
 
 (part2 example)
 
-(part2 (slurp "input_02.txt"))
+#_(part2 (slurp "input_02.txt"))

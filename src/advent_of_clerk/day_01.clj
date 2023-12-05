@@ -18,7 +18,7 @@ pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet")
 
-(part1 (slurp "input_01.txt"))
+#_(part1 (slurp "input_01.txt"))
 
 (def digits
   {"one" "1",
@@ -60,4 +60,4 @@ xtwone3four
 zoneight234
 7pqrstsixteen")
 
-(part2 (slurp "input_01.txt"))
+#_(part2 (slurp "input_01.txt"))

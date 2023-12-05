@@ -104,7 +104,7 @@
 
 (part1 example)
 
-(part1 (slurp "input_03.txt"))
+#_(part1 (slurp "input_03.txt"))
 
 (defn get-num
   "Get the number touching a cell"
@@ -148,4 +148,4 @@
 
 (part2 example)
 
-(part2 (slurp "input_03.txt"))
+#_(part2 (slurp "input_03.txt"))
