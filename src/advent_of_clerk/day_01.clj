@@ -38,8 +38,8 @@ treb7uchet")
 
 (rstr "Hello")
 
-(def numbers (re-pattern (clojure.string/join "|" (concat (keys digits) (vals digits) ["0"]))))
-(def revnumbers (re-pattern (rstr (clojure.string/join "|" (concat (keys digits) (vals digits) ["0"])))))
+(def numbers (re-pattern (str/join "|" (concat (keys digits) (vals digits) ["0"]))))
+(def revnumbers (re-pattern (rstr (str/join "|" (concat (keys digits) (vals digits) ["0"])))))
 
 (defn part2
   "Solve part 2"
@@ -49,7 +49,7 @@ treb7uchet")
        (map (fn [s] [(re-find numbers s)
                      (rstr (re-find revnumbers (rstr s)))]))
        (map (fn [s] (map #(digits % %) s)))
-       (map #(Integer/parseInt (apply str %)))
+       (map #(parse-long (apply str %)))
        (reduce +)))
 
 (part2 "two1nine
