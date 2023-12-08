@@ -67,31 +67,11 @@ QQQJA 483")
   (into {}
         (map-indexed #(vector %2 (+ 1 %1)) "J23456789TQKA")))
 
-(def type-scores2
-  {[1 1 1 1 1] high_card
-   [1 1 1 2]   one_pair
-   [1 2 2]     two_pair
-   [1 1 3]     three_of_a_kind
-   [2 3]       full_house
-   [1 4]       four_of_a_kind
-   [5]         five_of_a_kind
-
-   [1 1 1 1] one_pair
-   [1 1 2]   three_of_a_kind
-   [1 3]     four_of_a_kind
-   [2 2]     full_house
-   [4]       five_of_a_kind
-
-   [1 1 1] three_of_a_kind
-   [1 2]   four_of_a_kind
-   [3]     five_of_a_kind
-
-   [1 1] four_of_a_kind
-   [2]   five_of_a_kind
-
-   [1] five_of_a_kind
-
-   [] five_of_a_kind})
+(defn add-jokers
+  [jokers counts]
+  (if (empty? counts)
+    [jokers]
+    (update (vec counts) (dec (count counts)) + jokers)))
 
 (defn hand-type2
   [hand]
@@ -100,7 +80,8 @@ QQQJA 483")
        frequencies
        vals
        sort
-       type-scores2))
+       (add-jokers (count (filter #{\J} hand)))
+       type-scores))
 
 (hand-type2 "KTJJT")
 
