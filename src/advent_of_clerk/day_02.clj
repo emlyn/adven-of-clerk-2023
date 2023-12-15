@@ -1,6 +1,6 @@
 ;; # 🎄 Advent of Clerk: Day 2
 (ns advent-of-clerk.day-02
-  (:require [nextjournal.clerk :as clerk]
+  (:require [nextjournal.clerk]
             [clojure.string :as str]))
 
 (defn parse-draw

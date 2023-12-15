@@ -1,6 +1,6 @@
 ;; # 🎄 Advent of Clerk: Day 4
 (ns advent-of-clerk.day-04
-  (:require [nextjournal.clerk :as clerk]
+  (:require [nextjournal.clerk]
             [clojure.string :as str]))
 
 (def example "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
