@@ -129,16 +129,17 @@ LJ.LJ")
 (defn inside?
   [grid inloop [x y]]
   (and (not (cell inloop [x y]))
-       (let [cells (map #(if (cell inloop [% y])
+       (let [lcells (map #(if (cell inloop [% y])
                            (cell grid [% y])
                            \.)
                         (range x))
-             cells (if (some #{\S} cells)
-                     (map #(if (cell inloop [% y])
-                             (cell grid [% y])
-                             \.)
-                          (range (inc x) (inc (count (first grid)))))
-                     cells)]
+             rcells (map #(if (cell inloop [% y])
+                            (cell grid [% y])
+                            \.)
+                         (range (inc x) (inc (count (first grid)))))
+             cells (if (some #{\S} lcells)
+                     rcells
+                     lcells)]
          (->> cells
               num-crossings
               odd?))))
@@ -192,9 +193,9 @@ L7JLJL-JLJLJL--JLJ.L")
 
 (part2 example4) ;; expect 10
 
-(part2 (slurp "input_10.txt"))
+#_(part2 (slurp "input_10.txt"))
 
-(let [grid (->2darray (slurp "input_10.txt"))
+#_(let [grid (->2darray (slurp "input_10.txt"))
       path (get-loop (slurp "input_10.txt"))
       cont (map-grid (fn [_c x y]
                        (inside? grid path [x y]))
