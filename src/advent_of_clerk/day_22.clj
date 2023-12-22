@@ -64,9 +64,12 @@
                   [[0 2 3] [2 2 3]]])
 
 (defn part1
-  "Solve(?) part 1."
+  "Solve part 1."
   [s]
-  (let [[_tops bricks] (place-bricks {} (parse-input s))
+  (let [[_tops bricks] (->> s
+                            parse-input
+                            (sort-by (fn [[[_ _ z1] []]] z1))
+                            (place-bricks {}))
 
         bricks ;; re-shape into map
         (into {}
@@ -90,24 +93,5 @@
 
 (part1 example)
 
-#_(
-;; 1,0,1~1,2,1 ;; A
-;; 0,0,2~2,0,2 ;; B **
-;; 0,2,3~2,2,3 ;; C **
-;; 0,0,4~0,2,4 ;; D **
-;; 2,0,5~2,2,5 ;; E **
-;; 0,1,6~2,1,6 ;; F
-;; 1,1,8~1,1,9 ;; G **
+#_(part1 (slurp "input_22.txt"))
 
-{
- [[1 0 1] [1 2 1]] {:supported-by #{} :supports #{[[0 0 2] [2 0 2]] [[0 2 2] [2 2 2]]}}
- [[0 0 2] [2 0 2]] {:supported-by #{[[1 0 1] [1 2 1]]} :supports #{[[0 0 3] [0 2 3]] [[2 0 3] [2 2 3]]}}
- [[0 2 2] [2 2 2]] {:supported-by #{[[1 0 1] [1 2 1]]} :supports #{[[0 0 3] [0 2 3]] [[2 0 3] [2 2 3]]}}
- [[0 0 3] [0 2 3]] {:supported-by #{[[0 0 2] [2 0 2]] [[0 2 2] [2 2 2]]} :supports #{[[0 1 4] [2 1 4]]}}
- [[2 0 3] [2 2 3]] {:supported-by #{[[0 0 2] [2 0 2]] [[0 2 2] [2 2 2]]} :supports #{[[0 1 4] [2 1 4]]}}
- [[0 1 4] [2 1 4]] {:supported-by #{[[0 0 3] [0 2 3]] [[2 0 3] [2 2 3]]} :supports #{[[1 1 5] [1 1 6]]}}
- [[1 1 5] [1 1 6]] {:supported-by #{[[0 1 4] [2 1 4]]} :supports #{}}
- }
-)
-
-(part1 (slurp "input_22.txt")) ;; 449 - too high
