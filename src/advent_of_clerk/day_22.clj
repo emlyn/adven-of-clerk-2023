@@ -63,8 +63,7 @@
                   [[0 0 2] [2 0 2]]
                   [[0 2 3] [2 2 3]]])
 
-(defn part1
-  "Solve part 1."
+(defn brick-info
   [s]
   (let [[_tops bricks] (->> s
                             parse-input
@@ -74,16 +73,21 @@
         bricks ;; re-shape into map
         (into {}
               (map (fn [[b s]] [b {:supported-by s :supports #{}}])
-                   bricks))
+                   bricks))]
 
-        bricks ;; fill in :supports info
-        (reduce-kv (fn [bricks brick {:keys [supported-by]}]
-                     (reduce (fn [bricks supported-by]
-                               (update-in bricks [supported-by :supports] conj brick))
-                             bricks
-                             supported-by))
-                   bricks
-                   bricks)]
+    ;; fill in :supports info
+    (reduce-kv (fn [bricks brick {:keys [supported-by]}]
+                 (reduce (fn [bricks supported-by]
+                           (update-in bricks [supported-by :supports] conj brick))
+                         bricks
+                         supported-by))
+               bricks
+               bricks)))
+
+(defn part1
+  "Solve part 1."
+  [s]
+  (let [bricks (brick-info s)]
     (->> bricks
          ;; remove any bricks that support a brick that is only supported by one brick
          (remove (fn [[_brick {:keys [supports]}]]
@@ -95,3 +99,28 @@
 
 #_(part1 (slurp "input_22.txt"))
 
+(defn chain-size
+  "How many other bricks would fall of we disintegrate `brick`?"
+  [bricks [brick _]]
+  (loop [gone #{brick}]
+    (if-let [more-gone (->> bricks
+                            (filter (fn [[_b {:keys [supported-by]}]]
+                                      (and (seq supported-by)
+                                           (every? gone supported-by))))
+                            (map first)
+                            (remove gone)
+                            seq)]
+      (recur (into gone more-gone))
+      (dec (count gone)))))
+
+(defn part2
+  "Solve part 2."
+  [s]
+  (let [bricks (brick-info s)]
+    (->> bricks
+         (map (partial chain-size bricks))
+         (apply +))))
+
+(part2 example)
+
+#_(part2 (slurp "input_22.txt"))
