@@ -25,19 +25,6 @@
   [grid [x y]]
   (get-in grid [y x]))
 
-(defn set-cell [grid [x y] v]
-  (assoc-in grid [y x] v))
-
-(defn map-grid
-  "Map a function over a 2D array"
-  [f grid]
-  (reduce (fn [g [x y]]
-            (set-cell g [x y] (f (cell grid [x y]) x y)))
-          grid
-          (for [x (range (count (first grid)))
-                y (range (count grid))]
-            [x y])))
-
 (defn neighbours
   "Get neighbours of a cell"
   [[x y]]
