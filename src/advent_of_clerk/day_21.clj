@@ -1,7 +1,7 @@
 ;; # 🎄 Advent of Clerk: Day 21
 (ns advent-of-clerk.day-21
   (:require [nextjournal.clerk]
-            [clojure.string :as str]))
+            [emlyn.grid :as g]))
 
 (def example "...........
 .....###.#.
@@ -15,16 +15,6 @@
 .##..##.##.
 ...........")
 
-(defn ->2darray
-  "Convert string to 2D array (vector of vector of chars)"
-  [s]
-  (mapv vec (str/split-lines s)))
-
-(defn cell
-  "Get cell value from 2D array"
-  [grid [x y]]
-  (get-in grid [y x]))
-
 (defn neighbours
   "Get neighbours of a cell"
   [[x y]]
@@ -36,11 +26,10 @@
 (defn part1
   "Solve part 1."
   [s & [steps]]
-  (let [grid (->2darray s)]
+  (let [grid (g/grid s)]
     (loop [pos (remove nil?
-                       (for [x (range (count (first grid)))
-                             y (range (count grid))
-                             :when (= \S (cell grid [x y]))]
+                       (for [[x y] (keys grid)
+                             :when (= \S (grid [x y]))]
                          [x y]))
            remaining (or steps 64)]
       (if (zero? remaining)
@@ -48,32 +37,28 @@
         (recur (->> pos
                     (mapcat neighbours)
                     (set)
-                    (filter #(#{\. \S} (cell grid %))))
+                    (filter #(#{\. \S} (grid %))))
                (dec remaining))))))
 
 (part1 example 16)
 
-(part1 (slurp "input_21.txt"))
-
-(count (->2darray (slurp "input_21.txt")))
-(count (first (->2darray (slurp "input_21.txt"))))
+#_(part1 (slurp "input_21.txt"))
 
 (defn canonical
   [grid [x y]]
-  [(mod y (count grid)) (mod x (count (first grid)))])
+  [(mod y (g/height grid)) (mod x (g/width grid))])
 
 (defn cell2
   "Get cell value from 2D array"
   [grid [x y]]
-  (get-in grid (canonical grid [x y])))
+  (grid (canonical grid [x y])))
 
 (defn part2
   "Solve part 2."
   [s & [steps]]
-  (let [grid (->2darray s)]
+  (let [grid (g/grid s)]
     (loop [pos (remove nil?
-                       (for [x (range (count (first grid)))
-                             y (range (count grid))
+                       (for [[x y] (keys grid)
                              :when (= \S (cell2 grid [x y]))]
                          [x y]))
            remaining steps]
@@ -89,6 +74,9 @@
 (part2 example 50)
 (part2 example 100)
 (part2 example 500)
+
+#_(g/height (g/grid (slurp "input_21.txt")))
+#_(g/width (g/grid (slurp "input_21.txt")))
 
 ;; grid is 131x131 - maybe pattern repeats every 131 steps?
 ;; target = 26501365 = 131 * 202300 + 65.
@@ -110,3 +98,8 @@
 
 ;; y = 3971396 / 4496182 * 26501365 * 26501365 + 7300630 / 4496182 * 26501365 - 73777628 / 4496182
 ;;   = 620,348,631,910,321
+
+(/ (+ (* 3971396M 26501365 26501365)
+      (* 7300630 26501365)
+      -73777628)
+   4496182)

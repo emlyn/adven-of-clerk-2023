@@ -1,7 +1,7 @@
 ;; # 🎄 Advent of Clerk: Day 23
 (ns advent-of-clerk.day-23
   (:require [nextjournal.clerk]
-            [clojure.string :as str]))
+            [emlyn.grid :as g]))
 
 (def example "#.#####################
 #.......#########...###
@@ -27,27 +27,14 @@
 #.....###...###...#...#
 #####################.#")
 
-(defn ->2darray
-  "Convert string to 2D array (vector of vector of chars)"
-  [s]
-  (mapv vec (str/split-lines s)))
-
-(defn cell
-  "Get cell value from 2D array"
-  [grid [x y]]
-  (get-in grid [y x]))
-
-(defn set-cell [grid [x y] v]
-  (assoc-in grid [y x] v))
-
 (defn neighbours
   "Neighbouring cells that can be reached from a given cell."
   [grid x y]
   (for [[dx dy] [[-1 0] [1 0] [0 -1] [0 1]]
         :let [xx (+ x dx)
               yy (+ y dy)
-              c (cell grid [x y])]
-        :when (and (#{\. \< \> \^ \v} (cell grid [xx yy]))
+              c (grid [x y])]
+        :when (and (#{\. \< \> \^ \v} (grid [xx yy]))
                    (or (= \. c)
                        (#{[1 0 \>]
                           [-1 0 \<]
@@ -66,19 +53,18 @@
 (defn part1
   "Solve part 1."
   [s]
-  (let [grid (->2darray s)
-        graph  (into {}
-                     (for [x (range (count (first grid)))
-                           y (range (count grid))
-                           :let [n (neighbours grid x y)]
-                           :when (pos? (count n))]
-                       [[x y] n]))
-        start (->> (first grid)
-                   (map-indexed (fn [x c]
-                                  (when (= \. c)
-                                    [x 0])))
+  (let [grid (g/grid s)
+        graph (into {}
+                    (for [[x y] (keys grid)
+                          :let [n (neighbours grid x y)]
+                          :when (pos? (count n))]
+                      [[x y] n]))
+        start (->> (range (g/width grid))
+                   (map (fn [x]
+                          (when (= \. (grid [x 0]))
+                            [x 0])))
                    (remove nil?))
-        endy (dec (count grid))]
+        endy (dec (g/height grid))]
     (loop [paths (map (fn [p] [p #{p}]) start)
            best nil]
       (let [{next-paths false
@@ -106,7 +92,7 @@
   (for [[dx dy] [[-1 0] [1 0] [0 -1] [0 1]]
         :let [xx (+ x dx)
               yy (+ y dy)
-              c (cell grid [xx yy])]
+              c (grid [xx yy])]
         :when (#{\. \< \> \^ \v} c)]
     [xx yy]))
 
@@ -157,21 +143,20 @@
 (defn part2
   "Solve part 2."
   [s]
-  (let [grid (->2darray s)
+  (let [grid (g/grid s)
         graph  (into {}
-                     (for [x (range (count (first grid)))
-                           y (range (count grid))
-                           :when (#{\. \< \> \^ \v} (cell grid [x y]))
+                     (for [[x y] (keys grid)
+                           :when (#{\. \< \> \^ \v} (grid [x y]))
                            :let [n (neighbours2 grid x y)]
                            :when (pos? (count n))]
                        [[x y] (into {} (map #(vector % 1) n))]))
         graph (prune-graph graph (dec (count grid)))
-        start (->> (first grid)
-                   (map-indexed (fn [x c]
-                                  (when (= \. c)
-                                    [x 0])))
+        start (->> (range (g/width grid))
+                   (map (fn [x]
+                          (when (= \. (grid [x 0]))
+                            [x 0])))
                    (remove nil?))
-        endy (dec (count grid))]
+        endy (dec (g/height grid))]
     (loop [paths (map (fn [p] [p #{p} 0]) start)
            best nil]
       (let [{next-paths false

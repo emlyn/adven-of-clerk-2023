@@ -1,28 +1,14 @@
 ;; # 🎄 Advent of Clerk: Day 10
 (ns advent-of-clerk.day-10
   (:require [nextjournal.clerk]
-            [clojure.string :as str]))
+            [emlyn.grid :as g]
+            #_[clojure.string :as str]))
 
 (def example "7-F7-
 .FJ|7
 SJLL7
 |F--J
 LJ.LJ")
-
-(defn ->2darray
-  "Convert string to 2D array (vector of vector of chars)"
-  [s]
-  (mapv vec (str/split-lines s)))
-
-(->2darray example)
-
-(defn cell
-  "Get cell value from 2D array"
-  [grid [x y]]
-  (get-in grid [y x]))
-
-(cell (->2darray example) [3 1])
-(cell (->2darray example) [-1 6])
 
 (defn dirs
   "Get directions a cell can connect to"
@@ -41,50 +27,34 @@ LJ.LJ")
 
 (defn neighbours
   [grid [x y]]
-  (for [[dx dy] (dirs (cell grid [x y]))
-        [nx ny] (dirs (cell grid [(+ x dx) (+ y dy)]))
+  (for [[dx dy] (dirs (grid [x y]))
+        [nx ny] (dirs (grid [(+ x dx) (+ y dy)]))
         :when (and (= dx (- nx)) (= dy (- ny)))]
     [(+ x dx) (+ y dy)]))
-
-(defn set-cell [grid [x y] v]
-  (assoc-in grid [y x] v))
 
 (defn find-cell
   [grid c]
   (->> grid
-       (map-indexed (fn [y r]
-                      (when-let [s (->> r
-                                        (map-indexed (fn [x v] (when (= v c) x)))
-                                        (remove nil?)
-                                        seq)]
-                        [(first s) y])))
+       (g/map-kv (fn [[x y] v]
+                   (when (= v c) [x y])))
+       vals
        (remove nil?)
        first))
 
-(find-cell (->2darray example) \S)
-
-(defn map-grid
-  "Map a function over a 2D array"
-  [f grid]
-  (reduce (fn [g [x y]]
-            (set-cell g [x y] (f (cell grid [x y]) x y)))
-          grid
-          (for [x (range (count (first grid)))
-                y (range (count grid))]
-            [x y])))
+(find-cell (g/grid example) \S)
 
 (defn part1
   [s]
-  (let [grid (->2darray s)]
-    (loop [seen (map-grid (fn [c _x _y] (= c \S)) grid)
+  (let [grid (g/grid s)]
+    (loop [seen (g/map-vals #(= % \S) grid)
            steps 0
            pos [(find-cell grid \S)]]
       (if-let [next (seq (for [p pos
                                n (neighbours grid p)
-                               :when (not (cell seen n))]
+                               :when (not (seen n))]
                            n))]
         (recur (reduce (fn [s p]
-                         (set-cell s p true))
+                         (assoc s p true))
                        seen
                        next)
                (inc steps)
@@ -99,23 +69,23 @@ LJ.LJ")
   "Which cells are part of the loop?
    Basically `part1` but return the `seen` grid instead of the count"
   [s]
-  (let [grid (->2darray s)]
-    (loop [seen (map-grid (fn [c _x _y] (= c \S)) grid)
+  (let [grid (g/grid s)]
+    (loop [seen (g/map-vals #(= % \S) grid)
            steps 0
            pos [(find-cell grid \S)]]
       (if-let [next (seq (for [p pos
                                n (neighbours grid p)
-                               :when (not (cell seen n))]
+                               :when (not (seen n))]
                            n))]
         (recur (reduce (fn [s p]
-                         (set-cell s p true))
+                         (assoc s p true))
                        seen
                        next)
                (inc steps)
                next)
         seen))))
 
-(map-grid (fn [c _ _] (if c \# \.)) (get-loop example))
+(g/map-vals #(if % \# \.) (get-loop example))
 
 (defn num-crossings
   [cells]
@@ -128,13 +98,13 @@ LJ.LJ")
 
 (defn inside?
   [grid inloop [x y]]
-  (and (not (cell inloop [x y]))
-       (let [lcells (map #(if (cell inloop [% y])
-                           (cell grid [% y])
+  (and (not (inloop [x y]))
+       (let [lcells (map #(if (inloop [% y])
+                           (grid [% y])
                            \.)
                         (range x))
-             rcells (map #(if (cell inloop [% y])
-                            (cell grid [% y])
+             rcells (map #(if (inloop [% y])
+                            (grid [% y])
                             \.)
                          (range (inc x) (inc (count (first grid)))))
              cells (if (some #{\S} lcells)
@@ -146,9 +116,9 @@ LJ.LJ")
 
 (defn part2
   [s]
-  (let [grid (->2darray s)
+  (let [grid (g/grid s)
         seen (get-loop s)]
-    (->> (map-grid (fn [_c x y]
+    (->> (g/map-kv (fn [[x y] _]
                      (inside? grid seen [x y]))
                    grid)
          (mapcat identity)
@@ -195,16 +165,17 @@ L7JLJL-JLJLJL--JLJ.L")
 
 #_(part2 (slurp "input_10.txt"))
 
-#_(let [grid (->2darray (slurp "input_10.txt"))
+#_(let [grid (g/grid (slurp "input_10.txt"))
       path (get-loop (slurp "input_10.txt"))
-      cont (map-grid (fn [_c x y]
+      cont (g/map-kv (fn [[x y] _]
                        (inside? grid path [x y]))
                      grid)]
-  (->> (map-grid (fn [c x y]
-                   (cond (cell cont [x y]) \#
-                         (cell path [x y]) c
+  (->> (g/map-kv (fn [[x y] c]
+                   (cond (cont [x y]) \#
+                         (path [x y]) c
                          :else \.))
                  grid)
+       g/as-rows
        (map (partial apply str))
        (str/join \newline)
        (spit "debug.txt")))

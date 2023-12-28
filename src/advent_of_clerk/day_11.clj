@@ -1,7 +1,7 @@
 ;; # 🎄 Advent of Clerk: Day 11
 (ns advent-of-clerk.day-11
   (:require [nextjournal.clerk]
-            [clojure.string :as str]))
+            [emlyn.grid :as g]))
 
 (def example "...#......
 .......#..
@@ -14,52 +14,29 @@
 .......#..
 #...#.....")
 
-(defn ->2darray
-  "Convert string to 2D array (vector of vector of chars)"
-  [s]
-  (mapv vec (str/split-lines s)))
-
-(->2darray example)
-
-(defn cell
-  "Get cell value from 2D array"
-  [grid [x y]]
-  (get-in grid [y x]))
-
-(defn set-cell [grid [x y] v]
-  (assoc-in grid [y x] v))
-
-(defn map-grid
-  "Map a function over a 2D array"
-  [f grid]
-  (reduce (fn [g [x y]]
-            (set-cell g [x y] (f (cell grid [x y]) x y)))
-          grid
-          (for [x (range (count (first grid)))
-                y (range (count grid))]
-            [x y])))
-
 (defn part1
   "Solve part 1 (and part 2!)"
   [s & [ex]]
-  (let [grid (->2darray s)
-        ymap (first (reduce (fn [[m n] [y r]]
-                                (if (not-any? #{\#} r)
-                                  [m (+ n (or ex 2))]
-                                  [(assoc m y n) (inc n)]))
-                              [{} 0]
-                              (map vector (range) grid)))
+  (let [grid (g/grid s)
+        ymap (first (reduce (fn [[m n] y]
+                              (if (not-any? #{\#} (map #(grid [% y])
+                                                       (range (g/width grid))))
+                                [m (+ n (or ex 2))]
+                                [(assoc m y n) (inc n)]))
+                            [{} 0]
+                            (range (g/height grid))))
         xmap (first (reduce (fn [[m n] x]
-                                (if (not-any? #{\#} (map #(cell grid [x %])
-                                                         (range (count grid))))
-                                  [m (+ n (or ex 2))]
-                                  [(assoc m x n) (inc n)]))
-                              [{} 0]
-                              (range (count (first grid)))))
+                              (if (not-any? #{\#} (map #(grid [x %])
+                                                       (range (g/height grid))))
+                                [m (+ n (or ex 2))]
+                                [(assoc m x n) (inc n)]))
+                            [{} 0]
+                            (range (g/width grid))))
         stars (->> grid
-                   (map-grid (fn [c x y]
+                   (g/map-kv (fn [[x y] c]
                                (when (= c \#)
                                  [x y])))
+                   g/as-rows
                    (mapcat #(remove nil? %))
                    vec)]
     (apply + (for [s1 (range (dec (count stars)))

@@ -1,7 +1,7 @@
 ;; # 🎄 Advent of Clerk: Day 17
 (ns advent-of-clerk.day-17
   (:require [nextjournal.clerk]
-            [clojure.string :as str]))
+            [emlyn.grid :as g]))
 
 (def example "2413432311323
 3215453535623
@@ -16,29 +16,6 @@
 1224686865563
 2546548887735
 4322674655533")
-
-(defn ->2darray
-  "Convert string to 2D array (vector of vector of chars)"
-  [s]
-  (mapv vec (str/split-lines s)))
-
-(defn cell
-  "Get cell value from 2D array"
-  [grid [x y]]
-  (get-in grid [y x]))
-
-(defn set-cell [grid [x y] v]
-  (assoc-in grid [y x] v))
-
-(defn map-grid
-  "Map a function over a 2D array"
-  [f grid]
-  (reduce (fn [g [x y]]
-            (set-cell g [x y] (f (cell grid [x y]) x y)))
-          grid
-          (for [x (range (count (first grid)))
-                y (range (count grid))]
-            [x y])))
 
 (defn right
   "Rotate a direction clockwise"
@@ -62,43 +39,43 @@
        (mapcat (fn [[[pos dir num] cost]]
                  [[[pos dir num] cost]
                   (let [pos (plus-dir pos dir)]
-                    (when-let [v (and (< num 4)
-                                      (cell grid pos))]
+                    (when-let [v (and (< num 3)
+                                      (grid pos))]
                       [[pos dir (inc num)] (+ cost v)]))
                   (let [dir (right dir)
                         pos (plus-dir pos dir)]
-                    (when-let [v (cell grid pos)]
+                    (when-let [v (grid pos)]
                       [[pos dir 1] (+ cost v)]))
                   (let [dir (left dir)
                         pos (plus-dir pos dir)]
-                    (when-let [v (cell grid pos)]
+                    (when-let [v (grid pos)]
                       [[pos dir 1] (+ cost v)]))]))
        (remove nil?)
        (reduce (fn [m [k v]]
                  (update m k #(if % (min % v) v)))
                {})))
 
-(let [grid (map-grid (fn [c _x _y] (parse-long (str c)))
-                     (->2darray example))]
+(let [grid (g/map-vals (comp parse-long str)
+                       (g/grid example))]
   (update-cost grid {[[0 0] [1 0] 0] 0}))
 
 (defn part1
   "Solve part 1."
   [s]
-  (let [grid (map-grid (fn [c _x _y] (parse-long (str c)))
-                       (->2darray s))]
+  (let [grid (g/map-vals (comp parse-long str)
+                         (g/grid s))]
     (loop [cost {[[0 0] [1 0] 0] 0}]
       (let [nextcost (update-cost grid cost)]
         (if (= cost nextcost)
           (->> cost
-               (filter (fn [[[pos _dir _num] _v]] (= pos [(dec (count (first grid))) (dec (count grid))])))
+               (filter (fn [[[pos _dir _num] _v]] (= pos [(dec (g/width grid)) (dec (g/height grid))])))
                (map (fn [[_k v]] v))
                (apply min))
           (recur nextcost))))))
 
 (part1 example)
 
-(part1 (slurp "input_17.txt"))
+#_(part1 (slurp "input_17.txt"))
 
 (defn update-cost2
   "Update the cost of each cell using the rules from part 2."
@@ -108,17 +85,17 @@
                  [[[pos dir num] cost]
                   (let [pos (plus-dir pos dir)]
                     (when-let [v (and (< num 10)
-                                      (cell grid pos))]
+                                      (grid pos))]
                       [[pos dir (inc num)] (+ cost v)]))
                   (let [dir (right dir)
                         pos (plus-dir pos dir)]
                     (when-let [v (and (>= num 4)
-                                      (cell grid pos))]
+                                      (grid pos))]
                       [[pos dir 1] (+ cost v)]))
                   (let [dir (left dir)
                         pos (plus-dir pos dir)]
                     (when-let [v (and (>= num 4)
-                                      (cell grid pos))]
+                                      (grid pos))]
                       [[pos dir 1] (+ cost v)]))]))
        (remove nil?)
        (reduce (fn [m [k v]]
@@ -128,14 +105,14 @@
 (defn part2
   "Solve part 2."
   [s]
-  (let [grid (map-grid (fn [c _x _y] (parse-long (str c)))
-                       (->2darray s))]
+  (let [grid (g/map-vals (comp parse-long str)
+                         (g/grid s))]
     (loop [cost {[[0 0] [1 0] 0] 0}]
       (let [nextcost (update-cost2 grid cost)]
         (if (= cost nextcost)
           (->> cost
                (filter (fn [[[pos _dir num] _v]]
-                         (and (= pos [(dec (count (first grid))) (dec (count grid))])
+                         (and (= pos [(dec (g/width grid)) (dec (g/height grid))])
                               (>= num 4))))
                (map (fn [[_k v]] v))
                (apply min))

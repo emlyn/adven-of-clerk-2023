@@ -37,7 +37,7 @@ ZZZ = (ZZZ, ZZZ)
 
 (part1 example)
 
-(part1 (slurp "input_08.txt"))
+#_(part1 (slurp "input_08.txt"))
 
 (def example2 "LR
 

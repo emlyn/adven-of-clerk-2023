@@ -2,6 +2,7 @@
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
         io.github.nextjournal/clerk {:git/sha "c667f674e9594f24443295301bfb250697c7054a"}
         org.babashka/cli {:mvn/version "0.7.53"}
+        com.github.emlyn/grid {:git/tag "v0.1.0" :git/sha "ed75d75"}
         ;; silence log warnings
         org.slf4j/slf4j-nop {:mvn/version "1.7.36"}}
  
